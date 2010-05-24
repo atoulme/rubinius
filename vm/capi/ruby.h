@@ -1096,9 +1096,10 @@ VALUE rb_uint2big(unsigned long number);
   /** Return the value associated with the key, excluding default values. */
   VALUE   rb_hash_lookup(VALUE self, VALUE key);
 
-  // There is code that uses RHASH_TBL to detect if rb_hash_lookup
-  // is available. I know, silly.
-#define RHASH_TBL 1
+// use this to iterate over a hash instead of using RHASH_TBL
+#define HAVE_RB_HASH_FOREACH 1
+
+#define RHASH_TBL(obj) assert("RHASH_TBL() is not supported")
 
   /** Set the value associated with the key. */
   VALUE   rb_hash_aset(VALUE self, VALUE key, VALUE value);
