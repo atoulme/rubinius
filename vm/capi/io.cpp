@@ -8,7 +8,7 @@
 #include "primitives.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/ruby.h"
+#include "capi/include/ruby.h"
 
 #include <fcntl.h>
 
@@ -61,10 +61,10 @@ namespace rubinius {
         RIO* f = new RIO;
         f->handle = as_value();
         f->fd = io_obj->descriptor()->to_native();
-        f->stdio_file = fdopen(f->fd, flags_modestr(io_obj->mode()->to_native()));
+        f->f = fdopen(f->fd, flags_modestr(io_obj->mode()->to_native()));
         // Disable all buffering so that it doesn't get out of sync with
         // the normal IO buffer.
-        setvbuf(f->stdio_file, 0, _IONBF, 0);
+        setvbuf(f->f, 0, _IONBF, 0);
 
         type_ = cRIO;
         as_.rio = f;

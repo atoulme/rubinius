@@ -13,6 +13,10 @@ namespace :extensions do
   desc "Clean all lib/ext files"
   task :clean do
     rm_f FileList["lib/ext/**/*.{o,#{$dlext}}"], :verbose => $verbose
+    # TODO: implement per extension cleaning. This hack is for
+    # openssl and dl, which use extconf.rb and create Makefile.
+    rm_f FileList["lib/ext/**/Makefile"], :verbose => $verbose
+    rm_f FileList["lib/ext/dl/*.func"], :verbose => $verbose
   end
 end
 
@@ -43,7 +47,7 @@ def compile_ext(name, opts={})
           ruby "-S rake #{'-t' if $verbose} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
         else
           unless File.directory? BUILD_CONFIG[:runtime]
-            ENV["CFLAGS"]      = "-Ivm/capi"
+            ENV["CFLAGS"]      = "-Ivm/capi/include"
           end
 
           unless File.exists?("Makefile") and File.exists?("extconf.h")
@@ -71,4 +75,8 @@ compile_ext "syck"
 compile_ext "melbourne", :task => "rbx", :doc => "for Rubinius"
 compile_ext "melbourne", :task => "mri", :doc => "for MRI"
 compile_ext "nkf"
+
+# rbx must be able to run to build these because they use
+# extconf.rb, so they must be after melbourne for Rubinius.
 compile_ext "openssl"
+compile_ext "dl"

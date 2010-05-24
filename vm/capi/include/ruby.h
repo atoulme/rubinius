@@ -356,11 +356,12 @@ struct RFloat {
 
 // To provide nicer error reporting
 #define RHASH(obj) assert("RHASH() is not supported")
+#define RHASH_TBL(obj) assert("RHASH_TBL() is not supported")
 
 struct RIO {
   VALUE handle;
   int fd;
-  FILE* stdio_file;
+  FILE* f;
 };
 
 #define RIO(d)          capi_rio_struct(d)
@@ -374,8 +375,8 @@ typedef struct RIO rb_io_t;
 // MRI checks also that it's not closed...
 #define GetOpenFile(val, ptr) (ptr) = (capi_rio_struct(val))
 
-#define GetReadFile(ptr)  (ptr->stdio_file)
-#define GetWriteFile(ptr) (ptr->stdio_file)
+#define GetReadFile(ptr)  (ptr->f)
+#define GetWriteFile(ptr) (ptr->f)
 
 /*
  * The immediates.
@@ -546,8 +547,14 @@ typedef struct RIO rb_io_t;
 /** Convert int to a Ruby Integer. */
 #define INT2FIX(i)        ((VALUE)(((long)(i))<<1 | FIXNUM_FLAG))
 
+/** Convert a char to a Ruby Integer. */
+#define CHR2FIX(x)        INT2FIX((long)((x)&0xff))
+
 /** Convert long to a Ruby Integer. @todo Should we warn if overflowing? --rue */
 #define LONG2FIX(i)       INT2FIX(i)
+
+char rb_num2chr(VALUE);
+#define NUM2CHR(x)        rb_num2chr((VALUE)x)
 
 long long rb_num2ll(VALUE);
 unsigned long long rb_num2ull(VALUE);
@@ -877,6 +884,15 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_check_convert_type(VALUE object_handle, int type,
       const char* type_name, const char* method_name);
 
+  /** No-op. */
+  void    rb_check_safe_obj(VALUE obj);
+
+  /** No-op. */
+  void    rb_check_safe_str(VALUE obj);
+
+  /** No-op. */
+  void    rb_secure_update(VALUE obj);
+
   /** Returns String representation of the class' name. */
   VALUE   rb_class_name(VALUE class_handle);
 
@@ -1095,11 +1111,6 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Return the value associated with the key, excluding default values. */
   VALUE   rb_hash_lookup(VALUE self, VALUE key);
-
-// use this to iterate over a hash instead of using RHASH_TBL
-#define HAVE_RB_HASH_FOREACH 1
-
-#define RHASH_TBL(obj) assert("RHASH_TBL() is not supported")
 
   /** Set the value associated with the key. */
   VALUE   rb_hash_aset(VALUE self, VALUE key, VALUE value);
@@ -1521,6 +1532,12 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Get current thread */
   VALUE   rb_thread_current(void);
+
+  /** Returns a thread-local value. */
+  VALUE rb_thread_local_aref(VALUE thread, ID id);
+
+  /** Sets a thread-local value. */
+  VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE value);
 
   /** Release the GIL and let func run in a parallel.
    *

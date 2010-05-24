@@ -5,7 +5,7 @@
 #include "builtin/symbol.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/ruby.h"
+#include "capi/include/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -307,6 +307,15 @@ extern "C" {
     }
 
     return obj;
+  }
+
+  void rb_check_safe_obj(VALUE obj) {
+  }
+
+  void rb_check_safe_str(VALUE obj) {
+  }
+
+  void rb_secure_update(VALUE obj) {
   }
 
   VALUE rb_any_to_s(VALUE obj) {

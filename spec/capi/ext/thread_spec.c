@@ -33,6 +33,15 @@ static VALUE do_unlocked(void* data) {
   return (VALUE)0;
 }
 
+static VALUE thread_spec_rb_thread_local_aref(VALUE self, VALUE thr, VALUE sym) {
+  return rb_thread_local_aref(thr, SYM2ID(sym));
+}
+
+static VALUE thread_spec_rb_thread_local_aset(VALUE self, VALUE thr, VALUE sym, VALUE value) {
+  return rb_thread_local_aset(thr, SYM2ID(sym), value);
+}
+
+#ifdef RUBINIUS
 // There is really no way to know we're unlocked. So just make sure the arguments
 // go through fine.
 static VALUE thread_spec_rb_thread_blocking_region() {
@@ -40,6 +49,7 @@ static VALUE thread_spec_rb_thread_blocking_region() {
   if(ret == (VALUE)1) return Qtrue;
   return Qfalse;
 }
+#endif
 
 void Init_thread_spec() {
   VALUE cls;
@@ -48,5 +58,9 @@ void Init_thread_spec() {
   rb_define_method(cls, "rb_thread_select", thread_spec_rb_thread_select, 1);
   rb_define_method(cls, "rb_thread_alone", thread_spec_rb_thread_alone, 0);
   rb_define_method(cls, "rb_thread_current", thread_spec_rb_thread_current, 0);
+  rb_define_method(cls, "rb_thread_local_aref", thread_spec_rb_thread_local_aref, 2);
+  rb_define_method(cls, "rb_thread_local_aset", thread_spec_rb_thread_local_aset, 3);
+#ifdef RUBINIUS
   rb_define_method(cls, "rb_thread_blocking_region", thread_spec_rb_thread_blocking_region, 0);
+#endif
 }
